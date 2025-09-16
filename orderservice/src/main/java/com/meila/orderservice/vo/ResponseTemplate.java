@@ -6,6 +6,8 @@ public class ResponseTemplate {
     private Produk produk;
     private Pelanggan pelanggan;
 
+    public ResponseTemplate() {
+}
 
     // Constructor dengan isi
     public ResponseTemplate(Order order, Produk produk, Pelanggan pelanggan) {

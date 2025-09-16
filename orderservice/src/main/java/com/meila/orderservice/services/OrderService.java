@@ -16,13 +16,15 @@ import com.meila.orderservice.vo.ResponseTemplate;
 
 @Service
 public class OrderService {
-    private DiscoveryClient discoveryClient;
 
     @Autowired
     private OrderRepository orderRepository;
 
     @Autowired
     private RestTemplate restTemplate; // bukan OrderRepository
+
+    @Autowired
+    private DiscoveryClient discoveryClient;
 
     public OrderService(DiscoveryClient discoveryClient) {
         this.discoveryClient = discoveryClient;
@@ -39,27 +41,20 @@ public class OrderService {
     }
 
     // Mengambil Order beserta Produk dan Pelanggan
-    public List<ResponseTemplate> getOrderWithProdukById(Long id) {
+   public List<ResponseTemplate> getOrderWithProdukById(Long id){
         List<ResponseTemplate> responseList = new ArrayList<>();
-
         Order order = getOrderById(id);
-        if (order == null) {
-            return responseList; // kosong jika order tidak ditemukan
-        }
-        ServiceInstance serviceInstancePelanggan = discoveryClient.getInstances("PELANGGANSERVICE").get(0);
-        ServiceInstance serviceInstanceProduk = discoveryClient.getInstances("PRODUCTSERVICE").get(0);
-        Produk produk = restTemplate.getForObject(
-                serviceInstanceProduk.getUri() + "/api/produk/" + order.getProdukId(),
-                Produk.class);
-
-        Pelanggan pelanggan = restTemplate.getForObject(
-                serviceInstancePelanggan.getUri() + "/api/pelanggan/" + order.getPelangganId(),
-                Pelanggan.class);
-
-        // Buat ResponseTemplate langsung pakai constructor
-        ResponseTemplate vo = new ResponseTemplate(order, produk, pelanggan);
+        ServiceInstance serviceInstance = discoveryClient.getInstances("PRODUK").get(0);
+        Produk produk = restTemplate.getForObject(serviceInstance.getUri() + "/api/produk/"
+                + order.getProdukId(), Produk.class);
+                serviceInstance = discoveryClient.getInstances("PELANGGAN").get(0);
+        Pelanggan pelanggan = restTemplate.getForObject(serviceInstance.getUri() + "/api/pelanggan/"
+                + order.getPelangganId(), Pelanggan.class);
+        ResponseTemplate vo = new ResponseTemplate();
+        vo.setOrder(order);
+        vo.setProduk(produk);
+        vo.setPelanggan(pelanggan);
         responseList.add(vo);
-
         return responseList;
     }
 
