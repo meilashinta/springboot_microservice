@@ -26,11 +26,11 @@ public class PeminjamanService {
     @Autowired
     private DiscoveryClient discoveryClient;
 
-    public List<Peminjaman> getAllPeminjaman(){
+    public List<Peminjaman> getAllPeminjaman() {
         return peminjamanRepository.findAll();
     }
 
-     public Peminjaman getPeminjamanById(Long id) {
+    public Peminjaman getPeminjamanById(Long id) {
         return peminjamanRepository.findById(id).orElse(null);
     }
 
@@ -42,19 +42,20 @@ public class PeminjamanService {
         peminjamanRepository.deleteById(id);
     }
 
-    public List<ResponseTemplate> getPeminjamanWithAnggotaBukuById(Long id){
+    public List<ResponseTemplate> getPeminjamanWithAnggotaBukuById(Long id) {
         List<ResponseTemplate> responseTemplates = new ArrayList<>();
         Peminjaman peminjaman = getPeminjamanById(id);
 
-        if(peminjaman == null){
+        if (peminjaman == null) {
             return null;
         }
 
-        ServiceInstance serviceInstanceAnggota = discoveryClient.getInstances("ANGGOTA_SERVICE").get(0);
-        ServiceInstance serviceInstanceBuku = discoveryClient.getInstances("BUKU_SERVICE").get(0);
+        ServiceInstance serviceInstance = discoveryClient.getInstances("API-GATEWAY-PUSTAKA").get(0);
 
-        Anggota anggota = restTemplate.getForObject(serviceInstanceAnggota.getUri() + "/api/anggota/" + peminjaman.getAnggotaId(), Anggota.class);
-        Buku buku = restTemplate.getForObject(serviceInstanceBuku.getUri() + "/api/buku/" + peminjaman.getBukuId(), Buku.class);
+        Anggota anggota = restTemplate
+                .getForObject(serviceInstance.getUri() + "/api/anggota/" + peminjaman.getAnggotaId(), Anggota.class);
+        Buku buku = restTemplate.getForObject(serviceInstance.getUri() + "/api/buku/" + peminjaman.getBukuId(),
+                Buku.class);
 
         ResponseTemplate vo = new ResponseTemplate();
         vo.setPeminjaman(peminjaman);
@@ -66,4 +67,3 @@ public class PeminjamanService {
         return responseTemplates;
     }
 }
-

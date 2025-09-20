@@ -1,12 +1,13 @@
-package com.meila.anggota_service;
+package com.meila.api_gateway_pustaka;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class AnggotaServiceApplication {
+public class ApiGatewayPustakaApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(AnggotaServiceApplication.class, args);
+		SpringApplication.run(ApiGatewayPustakaApplication.class, args);
 	}
+
 }

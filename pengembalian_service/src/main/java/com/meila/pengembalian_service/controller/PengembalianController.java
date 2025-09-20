@@ -35,10 +35,11 @@ public class PengembalianController {
     }
 
     @GetMapping("/{id}/detail")
-    public ResponseEntity<List<ResponseTemplate>> getPengembalianWithPeminjamanById(@PathVariable Long id) {
-        List<ResponseTemplate> responseTemplate = pengembalianService.getPengembalianWithPeminjamanById(id);
-        return responseTemplate != null ? ResponseEntity.ok(responseTemplate): ResponseEntity.notFound().build();
-    }
+public ResponseEntity<List<ResponseTemplate>> getPengembalianDetail(@PathVariable Long id) {
+    List<ResponseTemplate> response = pengembalianService.getPengembalianWithDetailById(id);
+    return response != null ? ResponseEntity.ok(response) : ResponseEntity.notFound().build();
+}
+
 
     @PostMapping
     public Pengembalian createPengembalian(@RequestBody Pengembalian pengembalian) throws ParseException{

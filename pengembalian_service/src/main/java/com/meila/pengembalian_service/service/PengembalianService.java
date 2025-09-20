@@ -15,11 +15,14 @@ import org.springframework.web.client.RestTemplate;
 
 import com.meila.pengembalian_service.model.Pengembalian;
 import com.meila.pengembalian_service.repository.PengembalianRepository;
+import com.meila.pengembalian_service.vo.Anggota;
+import com.meila.pengembalian_service.vo.Buku;
 import com.meila.pengembalian_service.vo.Peminjaman;
 import com.meila.pengembalian_service.vo.ResponseTemplate;
 
 @Service
 public class PengembalianService {
+
     @Autowired
     private PengembalianRepository pengembalianRepository;
 
@@ -29,14 +32,17 @@ public class PengembalianService {
     @Autowired
     private DiscoveryClient discoveryClient;
 
-    public List<Pengembalian> getAllPengembalians(){
+    // Semua pengembalian
+    public List<Pengembalian> getAllPengembalians() {
         return pengembalianRepository.findAll();
     }
 
-     public Pengembalian getPengembalianById(Long id) {
+    // Cari pengembalian berdasarkan id
+    public Pengembalian getPengembalianById(Long id) {
         return pengembalianRepository.findById(id).orElse(null);
     }
 
+    // Buat pengembalian baru
     public Pengembalian createPengembalian(Pengembalian pengembalian) throws ParseException {
         Peminjaman peminjaman = this.getPeminjaman(pengembalian.getPeminjamanId());
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
@@ -55,36 +61,52 @@ public class PengembalianService {
         return pengembalianRepository.save(pengembalian);
     }
 
+    // Hapus pengembalian
     public void deletePengembalian(Long id) {
         pengembalianRepository.deleteById(id);
     }
 
-    public List<ResponseTemplate> getPengembalianWithPeminjamanById(Long id){
+    // Ambil pengembalian beserta detail: peminjaman, anggota, buku
+    public List<ResponseTemplate> getPengembalianWithDetailById(Long id) {
         List<ResponseTemplate> responseTemplates = new ArrayList<>();
         Pengembalian pengembalian = getPengembalianById(id);
 
-        if(pengembalian == null){
-            return null;
-        }
+        if (pengembalian == null) return null;
 
-        ServiceInstance serviceInstancePeminjaman = discoveryClient.getInstances("PEMINJAMAN_SERVICE").get(0);
+        ServiceInstance serviceInstance = discoveryClient.getInstances("API-GATEWAY-PUSTAKA").get(0);
 
-        Peminjaman peminjaman = restTemplate.getForObject(serviceInstancePeminjaman.getUri() + "/api/peminjaman/" + pengembalian.getPeminjamanId(), Peminjaman.class);
+        // Ambil peminjaman
+        Peminjaman peminjaman = restTemplate.getForObject(
+                serviceInstance.getUri() + "/api/peminjaman/" + pengembalian.getPeminjamanId(),
+                Peminjaman.class);
 
+        // Ambil anggota
+        Anggota anggota = restTemplate.getForObject(
+                serviceInstance.getUri() + "/api/anggota/" + peminjaman.getAnggotaId(),
+                Anggota.class);
+
+        // Ambil buku
+        Buku buku = restTemplate.getForObject(
+                serviceInstance.getUri() + "/api/buku/" + peminjaman.getBukuId(),
+                Buku.class);
+
+        // Buat ResponseTemplate
         ResponseTemplate vo = new ResponseTemplate();
         vo.setPengembalian(pengembalian);
         vo.setPeminjaman(peminjaman);
+        vo.setAnggota(anggota);
+        vo.setBuku(buku);
 
         responseTemplates.add(vo);
-
         return responseTemplates;
     }
 
-    public Peminjaman getPeminjaman(Long id){
+    // Ambil peminjaman (untuk perhitungan denda)
+    public Peminjaman getPeminjaman(Long id) {
         try {
-            ServiceInstance serviceInstancePeminjaman = discoveryClient.getInstances("PEMINJAMAN_SERVICE").get(0);
-            Peminjaman peminjaman = restTemplate.getForObject(serviceInstancePeminjaman.getUri() + "/api/peminjaman/" + id, Peminjaman.class);
-            return peminjaman;
+            ServiceInstance serviceInstancePeminjaman = discoveryClient.getInstances("API-GATEWAY-PUSTAKA").get(0);
+            return restTemplate.getForObject(
+                    serviceInstancePeminjaman.getUri() + "/api/peminjaman/" + id, Peminjaman.class);
         } catch (Exception e) {
             return null;
         }
