@@ -1,4 +1,4 @@
-package com.meila.peminjaman_service.vo;
+package com.meila.rabbitmq_pustaka.vo;
 
 public class Anggota {
     private Long id;

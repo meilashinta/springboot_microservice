@@ -19,4 +19,3 @@ public class Peminjaman {
     private Long anggotaId;
     private Long bukuId;
 }
-
