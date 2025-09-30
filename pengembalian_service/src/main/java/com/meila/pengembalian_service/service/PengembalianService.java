@@ -45,7 +45,7 @@ public class PengembalianService {
     // Buat pengembalian baru
     public Pengembalian createPengembalian(Pengembalian pengembalian) throws ParseException {
         Peminjaman peminjaman = this.getPeminjaman(pengembalian.getPeminjamanId());
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
         Date tanggalKembali = sdf.parse(peminjaman.getTanggalKembali());
         Date tanggalDikembalikan = sdf.parse(pengembalian.getTanggalDikembalikan());

@@ -49,4 +49,4 @@ app:
 
 logging:
   level:
-    '[com.furqon.peminjaman_service]': DEBUG
+    '[com.meila.peminjaman_service]': DEBUG
