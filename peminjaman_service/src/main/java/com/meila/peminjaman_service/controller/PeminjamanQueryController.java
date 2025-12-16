@@ -13,16 +13,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PeminjamanQueryController {
 
-    private final PeminjamanQueryService peminajamQueryService;
+    private final PeminjamanQueryService peminjamanQueryService;
 
     @GetMapping
     public ResponseEntity<List<PeminjamanQuery>> getAllPeminjaman() {
-        return ResponseEntity.ok(peminajamQueryService.getAllPeminjaman());
+        return ResponseEntity.ok(peminjamanQueryService.getAllPeminjaman());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<PeminjamanQuery> getPeminjamanById(@PathVariable String id) {
-        PeminjamanQuery peminjaman = peminajamQueryService.getPeminjamanById(id);
+        PeminjamanQuery peminjaman = peminjamanQueryService.getPeminjamanById(id);
         return ResponseEntity.ok(peminjaman);
     }
 }

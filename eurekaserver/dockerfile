@@ -1,0 +1,14 @@
+# Use Java 17 JDK
+FROM openjdk:17.0.1-jdk-oracle
+
+# Set working directory
+WORKDIR /app
+
+# Copy JAR file
+COPY target/*.jar app.jar
+
+# Expose the port your service runs on (e.g., 8080)
+EXPOSE 8080
+
+# Run the service
+CMD ["java", "-jar", "app.jar"]

@@ -7,7 +7,7 @@ WORKDIR /app
 COPY target/*.jar app.jar
 
 # expose
-EXPOSE 8082
+EXPOSE 8087
 
 # run
 CMD ["java", "-jar", "app.jar"]

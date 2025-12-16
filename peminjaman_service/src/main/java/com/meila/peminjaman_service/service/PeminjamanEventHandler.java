@@ -18,57 +18,77 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class PeminjamanEventHandler {
+
     private final PeminjamanQueryRepository peminjamanQueryRepository;
     private final RestTemplate restTemplate;
 
     @RabbitListener(queues = "${app.rabbitmq.queue.transaction}")
     @Transactional
     public void consume(PeminjamanCommand event) {
-        String id = event.getId().toString();
+        // Validasi event null
         if (event == null || event.getId() == null) {
             log.warn("Menerima event null atau tanpa ID, pesan diabaikan.");
             return;
         }
 
+        String id = event.getId().toString();
+
+        // Handling DELETE
         if (PeminjamanCommand.EventType.DELETED.equals(event.getEventType())) {
             peminjamanQueryRepository.deleteById(id);
-            log.info("🗑️ Delete ke MongoDB berhasil untuk ID: {}", event.getId());
+            log.info("🗑️ Delete ke MongoDB berhasil untuk ID: {}", id);
             return;
         }
 
-        PeminjamanQuery entity = peminjamanQueryRepository.findById(id).orElse(new PeminjamanQuery());
+        // Ambil entity dari MongoDB atau buat baru
+        PeminjamanQuery entity = peminjamanQueryRepository.findById(id)
+                .orElse(new PeminjamanQuery());
 
-        String anggotaUrl = "http://localhost:9002/api/anggota/" + event.getAnggotaId();
-        Anggota anggota = restTemplate.getForObject(anggotaUrl, Anggota.class);
+        // Ambil data Anggota
+        try {
+            log.info("Mengambil data anggota dengan ID: {}", event.getAnggotaId());
+            String anggotaUrl = "http://localhost:9002/api/anggota/" + event.getAnggotaId();
+            Anggota anggota = restTemplate.getForObject(anggotaUrl, Anggota.class);
 
-        String bukuUrl = "http://localhost:9002/api/buku/" + event.getAnggotaId();
-        Buku buku = restTemplate.getForObject(bukuUrl, Buku.class);
+            if (anggota != null) {
+                entity.setNama(anggota.getNama());
+                entity.setEmail(anggota.getEmail());
+                entity.setJenisKelamin(anggota.getJenisKelamin());
+            }
+        } catch (Exception e) {
+            log.warn("Gagal mengambil data anggota: {}", e.getMessage());
+        }
 
+        // Ambil data Buku
+        try {
+            log.info("Mengambil data buku dengan ID: {}", event.getBukuId());
+            String bukuUrl = "http://localhost:9002/api/buku/" + event.getBukuId();
+            Buku buku = restTemplate.getForObject(bukuUrl, Buku.class);
 
+            entity.setBukuId(event.getBukuId());
+            if (buku != null) {
+                entity.setJudulBuku(buku.getJudul());
+                entity.setPengarangBuku(buku.getPengarang());
+                entity.setPenerbitBuku(buku.getPenerbit());
+                entity.setTahunTerbitBuku(buku.getTahunTerbit());
+            }
+        } catch (Exception e) {
+            log.warn("Gagal mengambil data buku: {}", e.getMessage());
+        }
+
+        // Set tanggal pinjam/kembali
         entity.setId(id);
         entity.setTanggalPinjam(event.getTanggalPinjam());
         entity.setTanggalKembali(event.getTanggalKembali());
-        
-        if (anggota != null) {
-            entity.setNama(anggota.getNama());
-            entity.setEmail(anggota.getEmail());
-            entity.setJenisKelamin(anggota.getJenisKelamin());
-        }
+        entity.setAnggotaId(event.getAnggotaId());
 
-        // Data buku
-        entity.setBukuId(event.getBukuId());
-        if (buku != null) {
-            entity.setJudulBuku(buku.getJudul());
-            entity.setPengarangBuku(buku.getPengarang());
-            entity.setPenerbitBuku(buku.getPenerbit());
-            entity.setTahunTerbitBuku(buku.getTahunTerbit());
-        }
-
+        // Simpan ke MongoDB
         peminjamanQueryRepository.save(entity);
+
         if (PeminjamanCommand.EventType.CREATED.equals(event.getEventType())) {
-            log.info("📩 Insert ke MongoDB berhasil untuk ID: {}", entity.getId());
+            log.info("📩 Insert ke MongoDB berhasil untuk ID: {}", id);
         } else {
-            log.info("✅ Update ke MongoDB berhasil untuk ID: {}", entity.getId());
+            log.info("✅ Update ke MongoDB berhasil untuk ID: {}", id);
         }
     }
 }

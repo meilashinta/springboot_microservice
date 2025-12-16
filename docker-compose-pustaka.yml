@@ -1,0 +1,384 @@
+version: '3.8'
+
+services:
+  # ==========================================
+  # INFRASTRUCTURE (DB & MESSAGING)
+  # ==========================================
+  
+  eureka-pustaka:
+    image: steeltoeoss/eureka-server
+    container_name: eureka-pustaka
+    ports:
+      - "8761:8761"
+    environment:
+      JAVA_OPTS: "-Xmx256m -Xss512k"
+    networks:
+      - pustakaservice-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  postgres-pustaka:
+    image: postgres:latest
+    container_name: postgres-pustaka
+    ports:
+      - "5432"
+    environment:
+      POSTGRES_DB: peminjaman
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    networks:
+      - pustakaservice-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d peminjaman || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  mongo-pustaka:
+    image: mongo:latest
+    container_name: mongo-pustaka
+    ports:
+      - "27017"
+    networks:
+      - pustakaservice-network
+    healthcheck:
+      test: test $$(echo "db.runCommand('ping').ok" | mongosh --port 27017 --quiet) -eq 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  rabbitmq-service:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq-service
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: password
+    networks:
+      - pustakaservice-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ==========================================
+  # ELK STACK INFRASTRUCTURE
+  # ==========================================
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0
+    container_name: elasticsearch
+    environment:
+      - node.name=elasticsearch
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    networks:
+      - pustakaservice-network
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.17.0
+    container_name: logstash
+    volumes:
+      - ./config/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+    ports:
+      - "5044:5044"
+    depends_on:
+      - elasticsearch
+    networks:
+      - pustakaservice-network
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.17.0
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    environment:
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    networks:
+      - pustakaservice-network
+
+  # ==========================================
+  # MICROSERVICES + SIDECARS
+  # ==========================================
+
+  # --- 1. Anggota Service Pair ---
+  anggota-service:
+    build: ./anggota_service
+    container_name: anggota-service
+    ports:
+      - "8084"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-pustaka:8761/eureka/
+      SPRING_RABBITMQ_HOST: rabbitmq-service
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: admin
+      SPRING_RABBITMQ_PASSWORD: password
+      
+      # H2 Database Configuration
+      SPRING_DATASOURCE_URL: jdbc:h2:file:/app/data/anggota;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
+      SPRING_DATASOURCE_USERNAME: sa
+      SPRING_DATASOURCE_PASSWORD: password
+      
+      # H2 Console
+      SPRING_H2_CONSOLE_ENABLED: "true"
+      SPRING_H2_CONSOLE_PATH: /h2-console
+      
+      # JPA Configuration
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.H2Dialect
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"
+      
+      SERVER_PORT: 8084
+      # Konfigurasi Log agar ditulis ke file
+      LOGGING_FILE_NAME: /app/logs/anggota-service.log 
+      LOGGING_LEVEL_ROOT: INFO
+    volumes:
+      - anggota_data:/data
+      - logs_anggota:/app/logs # Volume Logs dishare ke Sidecar
+    depends_on:
+      - eureka-pustaka
+      - rabbitmq-service
+    networks:
+      - pustakaservice-network
+
+  filebeat-anggota:
+    image: docker.elastic.co/beats/filebeat:7.17.0
+    container_name: filebeat-anggota
+    user: root
+    # ### TAMBAHKAN BARIS INI (Disable permission check) ###
+    command: filebeat -e --strict.perms=false 
+    volumes:
+      - ./config/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - logs_anggota:/usr/share/filebeat/logs_input:ro
+    depends_on:
+      - anggota-service
+    networks:
+      - pustakaservice-network
+
+  # --- 2. Buku Service Pair ---
+  buku-service:
+    build: ./buku_service
+    container_name: buku-service
+    ports:
+      - "8085"
+    environment:
+      # SPRING_PROFILES_ACTIVE: docker
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-pustaka:8761/eureka/
+      SPRING_RABBITMQ_HOST: rabbitmq-service
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: admin
+      SPRING_RABBITMQ_PASSWORD: password
+      
+      # H2 Database Configuration
+      SPRING_DATASOURCE_URL: jdbc:h2:file:/app/data/buku;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
+      SPRING_DATASOURCE_USERNAME: sa
+      SPRING_DATASOURCE_PASSWORD: password
+      
+      # H2 Console
+      SPRING_H2_CONSOLE_ENABLED: "true"
+      SPRING_H2_CONSOLE_PATH: /h2-console
+      
+      # JPA Configuration
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.H2Dialect
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"
+      
+      SERVER_PORT: 8085
+      # Konfigurasi Log
+      LOGGING_FILE_NAME: /app/logs/buku-service.log
+    volumes:
+      - buku_data:/data
+      - logs_buku:/app/logs # Volume Logs dishare
+    depends_on:
+      - eureka-pustaka
+      - rabbitmq-service
+    networks:
+      - pustakaservice-network
+
+  filebeat-buku:
+    image: docker.elastic.co/beats/filebeat:7.17.0
+    container_name: filebeat-buku
+    command: filebeat -e --strict.perms=false  # <--- Tambahkan di sini
+    volumes:
+      - ./config/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - logs_buku:/usr/share/filebeat/logs_input:ro
+    depends_on:
+      - buku-service
+    networks:
+      - pustakaservice-network
+
+  # --- 3. Peminjaman Service Pair ---
+  peminjaman-service:
+    build: ./peminjaman_service
+    container_name: peminjaman-service
+    ports:
+      - "8086"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-pustaka:8761/eureka/
+      SPRING_RABBITMQ_HOST: rabbitmq-service
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: admin
+      SPRING_RABBITMQ_PASSWORD: password
+      
+      # H2 Database Configuration
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-pustaka:5432/peminjaman
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_DATA_MONGODB_URI: mongodb://mongo-pustaka:27017/peminjaman
+      
+      # H2 Console
+      SPRING_H2_CONSOLE_ENABLED: "true"
+      SPRING_H2_CONSOLE_PATH: /h2-console
+      
+      # JPA Configuration
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
+      SPRING_JPA_HIBERNATE_DDL_AUTO: create
+      SPRING_JPA_SHOW_SQL: "true"
+      
+      SERVER_PORT: 8086
+      # Konfigurasi Log
+      LOGGING_FILE_NAME: /app/logs/peminjaman-service.log
+    volumes:
+      - peminjaman_data:/data
+      - logs_peminjaman:/app/logs # Volume Logs dishare
+    depends_on:
+      - eureka-pustaka
+      - rabbitmq-service
+      - postgres-pustaka
+      - mongo-pustaka
+    networks:
+      - pustakaservice-network
+
+  filebeat-peminjaman:
+    image: docker.elastic.co/beats/filebeat:7.17.0
+    container_name: filebeat-peminjaman
+    command: filebeat -e --strict.perms=false  # <--- Tambahkan di sini
+    volumes:
+      - ./config/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - logs_peminjaman:/usr/share/filebeat/logs_input:ro
+    depends_on:
+      - peminjaman-service
+    networks:
+      - pustakaservice-network
+
+  pengembalian-service:
+    build: ./pengembalian_service
+    container_name: pengembalian-service
+    ports:
+      - "8087"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-pustaka:8761/eureka/
+      SPRING_RABBITMQ_HOST: rabbitmq-service
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: admin
+      SPRING_RABBITMQ_PASSWORD: password
+      
+      # H2 Database Configuration
+      SPRING_DATASOURCE_URL: jdbc:h2:file:/app/data/pengembalian;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
+      SPRING_DATASOURCE_USERNAME: sa
+      SPRING_DATASOURCE_PASSWORD: password
+      
+      # H2 Console
+      SPRING_H2_CONSOLE_ENABLED: "true"
+      SPRING_H2_CONSOLE_PATH: /h2-console
+      
+      # JPA Configuration
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.H2Dialect
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"
+      
+      SERVER_PORT: 8087
+      # Konfigurasi Log agar ditulis ke file
+      LOGGING_FILE_NAME: /app/logs/pengembalian-service.log 
+      LOGGING_LEVEL_ROOT: INFO
+    volumes:
+      - pengembalian_data:/data
+      - logs_pengembalian:/app/logs # Volume Logs dishare ke Sidecar
+    depends_on:
+      - eureka-pustaka
+      - rabbitmq-service
+    networks:
+      - pustakaservice-network
+
+  filebeat-pengembalian:
+    image: docker.elastic.co/beats/filebeat:7.17.0
+    container_name: filebeat-pengembalian
+    user: root
+    # ### TAMBAHKAN BARIS INI (Disable permission check) ###
+    command: filebeat -e --strict.perms=false 
+    volumes:
+      - ./config/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - logs_pengembalian:/usr/share/filebeat/logs_input:ro
+    depends_on:
+      - pengembalian-service
+    networks:
+      - pustakaservice-network
+
+
+  # --- 4. API Gateway Pair ---
+  api-gateway-pustaka:
+    build: ./api-gateway-pustaka
+    container_name: api-gateway-pustaka
+    ports:
+      - "9002:9002"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-pustaka:8761/eureka/
+      EUREKA_INSTANCE_HOSTNAME: api-gateway-pustaka
+      SERVER_PORT: 9002
+      # Konfigurasi Log
+      LOGGING_FILE_NAME: /app/logs/gateway-service.log
+    volumes:
+      - logs_gateway:/app/logs # Volume Logs dishare
+    depends_on:
+      - eureka-pustaka
+      - anggota-service
+      - buku-service
+      - peminjaman-service
+    networks:
+      - pustakaservice-network
+
+  filebeat-gateway:
+    image: docker.elastic.co/beats/filebeat:7.17.0
+    container_name: filebeat-gateway
+    command: filebeat -e --strict.perms=false  # <--- Tambahkan di sini
+    volumes:
+      - ./config/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - logs_gateway:/usr/share/filebeat/logs_input:ro
+    depends_on:
+      - api-gateway-pustaka
+    networks:
+      - pustakaservice-network
+
+volumes:
+  anggota_data:
+  buku_data:
+  peminjaman_data:
+  pengembalian_data:
+  # Volume khusus untuk sharing log antara Service & Sidecar
+  logs_anggota:
+  logs_buku:
+  logs_peminjaman:
+  logs_pengembalian:
+  logs_gateway:
+
+networks:
+  pustakaservice-network:
+    driver: bridge
