@@ -1,9 +1,7 @@
 version: '3.8'
 
 services:
-  # ==========================================
-  # INFRASTRUCTURE (DB & MESSAGING)
-  # ==========================================
+
   
   eureka-pustaka:
     image: steeltoeoss/eureka-server
