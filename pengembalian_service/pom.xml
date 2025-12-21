@@ -21,7 +21,7 @@
 		<developer/>
 	</developers>
 	<scm>
-		<connection/>9
+		<connection/>
 		<developerConnection/>
 		<tag/>
 		<url/>
@@ -31,6 +31,11 @@
 		<spring-cloud.version>2025.0.0</spring-cloud.version>
 	</properties>
 	<dependencies>
+		<dependency>
+			<groupId>net.logstash.logback</groupId>
+			<artifactId>logstash-logback-encoder</artifactId>
+			<version>7.4</version>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>

@@ -5,7 +5,7 @@ spring:
     url: jdbc:postgresql://localhost:5433/peminjaman
     driver-class-name: org.postgresql.Driver
     username: postgres
-    password: '@meila_123'
+    password: "@meila_123"
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
@@ -18,11 +18,11 @@ spring:
     console:
       enabled: true
       path: /h2-console
-  
+
   data:
     mongodb:
       uri: mongodb://localhost:27017/peminjaman
-  
+
   rabbitmq:
     host: localhost
     port: 5672
@@ -40,7 +40,7 @@ app:
       transaction: peminjaman.queue.transaction
       email: peminjaman.queue.email
     exchange: peminjaman.exchange
-    routing-key: 
+    routing-key:
       transaction: peminjaman.routing.key.transaction
       email: peminjaman.routing.key.email
 
@@ -59,4 +59,7 @@ app:
 
 logging:
   level:
-    '[com.meila.peminjaman_service]': DEBUG
+    "[com.meila.peminjaman_service]": DEBUG
+
+server:
+  port: 8086
