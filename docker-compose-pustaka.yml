@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   eureka-pustaka:
@@ -120,25 +120,25 @@ services:
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: admin
       SPRING_RABBITMQ_PASSWORD: password
-      
+
       # H2 Database Configuration
       SPRING_DATASOURCE_URL: jdbc:h2:file:/app/data/anggota;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
       SPRING_DATASOURCE_USERNAME: sa
       SPRING_DATASOURCE_PASSWORD: password
-      
+
       # H2 Console
       SPRING_H2_CONSOLE_ENABLED: "true"
       SPRING_H2_CONSOLE_PATH: /h2-console
-      
+
       # JPA Configuration
       SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.H2Dialect
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_SHOW_SQL: "true"
-      
+
       SERVER_PORT: 8084
       # Konfigurasi Log agar ditulis ke file
-      LOGGING_FILE_NAME: /app/logs/anggota-service.log 
+      LOGGING_FILE_NAME: /app/logs/anggota-service.log
       LOGGING_LEVEL_ROOT: INFO
     volumes:
       - anggota_data:/data
@@ -154,7 +154,7 @@ services:
     container_name: filebeat-anggota
     user: root
     # ### TAMBAHKAN BARIS INI (Disable permission check) ###
-    command: filebeat -e --strict.perms=false 
+    command: filebeat -e --strict.perms=false
     volumes:
       - ./config/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
       - logs_anggota:/usr/share/filebeat/logs_input:ro
@@ -176,22 +176,22 @@ services:
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: admin
       SPRING_RABBITMQ_PASSWORD: password
-      
+
       # H2 Database Configuration
       SPRING_DATASOURCE_URL: jdbc:h2:file:/app/data/buku;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
       SPRING_DATASOURCE_USERNAME: sa
       SPRING_DATASOURCE_PASSWORD: password
-      
+
       # H2 Console
       SPRING_H2_CONSOLE_ENABLED: "true"
       SPRING_H2_CONSOLE_PATH: /h2-console
-      
+
       # JPA Configuration
       SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.H2Dialect
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_SHOW_SQL: "true"
-      
+
       SERVER_PORT: 8085
       # Konfigurasi Log
       LOGGING_FILE_NAME: /app/logs/buku-service.log
@@ -207,7 +207,7 @@ services:
   filebeat-buku:
     image: docker.elastic.co/beats/filebeat:7.17.0
     container_name: filebeat-buku
-    command: filebeat -e --strict.perms=false  # <--- Tambahkan di sini
+    command: filebeat -e --strict.perms=false # <--- Tambahkan di sini
     volumes:
       - ./config/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
       - logs_buku:/usr/share/filebeat/logs_input:ro
@@ -229,23 +229,23 @@ services:
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: admin
       SPRING_RABBITMQ_PASSWORD: password
-      
+
       # H2 Database Configuration
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-pustaka:5432/peminjaman
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_DATA_MONGODB_URI: mongodb://mongo-pustaka:27017/peminjaman
-      
+
       # H2 Console
       SPRING_H2_CONSOLE_ENABLED: "true"
       SPRING_H2_CONSOLE_PATH: /h2-console
-      
+
       # JPA Configuration
       SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
       SPRING_JPA_HIBERNATE_DDL_AUTO: create
       SPRING_JPA_SHOW_SQL: "true"
-      
+
       SERVER_PORT: 8086
       # Konfigurasi Log
       LOGGING_FILE_NAME: /app/logs/peminjaman-service.log
@@ -263,7 +263,7 @@ services:
   filebeat-peminjaman:
     image: docker.elastic.co/beats/filebeat:7.17.0
     container_name: filebeat-peminjaman
-    command: filebeat -e --strict.perms=false  # <--- Tambahkan di sini
+    command: filebeat -e --strict.perms=false # <--- Tambahkan di sini
     volumes:
       - ./config/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
       - logs_peminjaman:/usr/share/filebeat/logs_input:ro
@@ -284,25 +284,25 @@ services:
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: admin
       SPRING_RABBITMQ_PASSWORD: password
-      
+
       # H2 Database Configuration
       SPRING_DATASOURCE_URL: jdbc:h2:file:/app/data/pengembalian;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
       SPRING_DATASOURCE_USERNAME: sa
       SPRING_DATASOURCE_PASSWORD: password
-      
+
       # H2 Console
       SPRING_H2_CONSOLE_ENABLED: "true"
       SPRING_H2_CONSOLE_PATH: /h2-console
-      
+
       # JPA Configuration
       SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.H2Dialect
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_SHOW_SQL: "true"
-      
+
       SERVER_PORT: 8087
       # Konfigurasi Log agar ditulis ke file
-      LOGGING_FILE_NAME: /app/logs/pengembalian-service.log 
+      LOGGING_FILE_NAME: /app/logs/pengembalian-service.log
       LOGGING_LEVEL_ROOT: INFO
     volumes:
       - pengembalian_data:/data
@@ -318,7 +318,7 @@ services:
     container_name: filebeat-pengembalian
     user: root
     # ### TAMBAHKAN BARIS INI (Disable permission check) ###
-    command: filebeat -e --strict.perms=false 
+    command: filebeat -e --strict.perms=false
     volumes:
       - ./config/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
       - logs_pengembalian:/usr/share/filebeat/logs_input:ro
@@ -326,7 +326,6 @@ services:
       - pengembalian-service
     networks:
       - pustakaservice-network
-
 
   # --- 4. API Gateway Pair ---
   api-gateway-pustaka:
@@ -354,12 +353,34 @@ services:
   filebeat-gateway:
     image: docker.elastic.co/beats/filebeat:7.17.0
     container_name: filebeat-gateway
-    command: filebeat -e --strict.perms=false  # <--- Tambahkan di sini
+    command: filebeat -e --strict.perms=false # <--- Tambahkan di sini
     volumes:
       - ./config/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
       - logs_gateway:/usr/share/filebeat/logs_input:ro
     depends_on:
       - api-gateway-pustaka
+    networks:
+      - pustakaservice-network
+
+  jenkins:
+    build: ./jenkins
+    container_name: jenkins
+    user: root
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    ports:
+      - "8088:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ~/.kube:/root/.kube:ro
+    environment:
+      JAVA_OPTS: "-Xmx512m -Djava.net.preferIPv4Stack=true -Djava.net.preferIPv4Addresses=true"
+      KUBECONFIG: /root/.kube/config
+    extra_hosts:
+      - "kubernetes.docker.internal:172.17.0.1"
     networks:
       - pustakaservice-network
 
@@ -374,6 +395,7 @@ volumes:
   logs_peminjaman:
   logs_pengembalian:
   logs_gateway:
+  jenkins_home:
 
 networks:
   pustakaservice-network:
