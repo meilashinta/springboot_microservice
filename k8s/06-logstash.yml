@@ -26,6 +26,6 @@ spec:
       containers:
         - name: logstash
           # GANTI IMAGE: Pastikan image sudah di build dan push
-          image: furqonaugustseventeenth/logstash:latest 
+          image: meilashinta/logstash:latest
           ports:
             - containerPort: 5044

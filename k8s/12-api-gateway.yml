@@ -5,7 +5,7 @@ metadata:
 spec:
   selector:
     app: api-gateway-pustaka
-  type: LoadBalancer 
+  type: LoadBalancer
   ports:
     - port: 9002
       targetPort: 9002
@@ -27,7 +27,7 @@ spec:
       containers:
         - name: api-gateway-pustaka
           # GANTI IMAGE
-          image: furqonaugustseventeenth/api-gateway-pustaka:latest 
+          image: meilashinta/api-gateway-pustaka:latest
           ports:
             - containerPort: 9002
           env:
@@ -51,7 +51,7 @@ spec:
         # Sidecar
         - name: filebeat-gateway
           # GANTI IMAGE
-          image: furqonaugustseventeenth/filebeat:latest 
+          image: meilashinta/filebeat:latest
           command: ["filebeat", "-e", "--strict.perms=false"]
           volumeMounts:
             - name: logs-volume

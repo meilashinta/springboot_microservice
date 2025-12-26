@@ -26,7 +26,7 @@ spec:
       containers:
         - name: pengembalian-service
           # GANTI IMAGE
-          image: furqonaugustseventeenth/pengembalian-service:latest 
+          image: meilashinta/pengembalian-service:latest
           ports:
             - containerPort: 8087
           env:
@@ -72,7 +72,7 @@ spec:
         # Sidecar
         - name: filebeat-pengembalian
           # GANTI IMAGE
-          image: furqonaugustseventeenth/filebeat:latest 
+          image: meilashinta/filebeat:latest
           command: ["filebeat", "-e", "--strict.perms=false"]
           securityContext:
             runAsUser: 0

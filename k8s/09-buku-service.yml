@@ -26,7 +26,7 @@ spec:
       containers:
         - name: buku-service
           # GANTI IMAGE
-          image: furqonaugustseventeenth/buku-service:latest 
+          image: meilashinta/buku-service:latest
           ports:
             - containerPort: 8085
           env:
@@ -66,7 +66,7 @@ spec:
         # Sidecar
         - name: filebeat-buku
           # GANTI IMAGE
-          image: furqonaugustseventeenth/filebeat:latest 
+          image: meilashinta/filebeat:latest
           command: ["filebeat", "-e", "--strict.perms=false"]
           volumeMounts:
             - name: logs-volume

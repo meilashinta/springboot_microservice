@@ -26,7 +26,7 @@ spec:
       containers:
         - name: anggota-service
           # GANTI IMAGE
-          image: furqonaugustseventeenth/anggota-service:latest 
+          image: meilashinta/anggota-service:latest
           ports:
             - containerPort: 8084
           env:
@@ -70,7 +70,7 @@ spec:
         # Sidecar
         - name: filebeat-anggota
           # GANTI IMAGE
-          image: furqonaugustseventeenth/filebeat:latest 
+          image: meilashinta/filebeat:latest
           command: ["filebeat", "-e", "--strict.perms=false"]
           securityContext:
             runAsUser: 0

@@ -26,7 +26,7 @@ spec:
       containers:
         - name: peminjaman-service
           # GANTI IMAGE
-          image: furqonaugustseventeenth/peminjaman-service:latest 
+          image: meilashinta/peminjaman-service:latest
           ports:
             - containerPort: 8086
           env:
@@ -72,7 +72,7 @@ spec:
         # Sidecar
         - name: filebeat-peminjaman
           # GANTI IMAGE
-          image: furqonaugustseventeenth/filebeat:latest 
+          image: meilashinta/filebeat:latest
           command: ["filebeat", "-e", "--strict.perms=false"]
           volumeMounts:
             - name: logs-volume
