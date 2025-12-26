@@ -22,8 +22,9 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                echo 'Checking out source code from Git...'
-                checkout scm
+                deleteDir()
+                git branch: 'main',
+                    url: 'https://github.com/meilashinta/springboot_microservice.git'
             }
         }
 
