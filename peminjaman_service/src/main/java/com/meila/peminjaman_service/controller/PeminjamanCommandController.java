@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/peminjaman/command")
+@RequestMapping("/api/peminjaman")
 @RequiredArgsConstructor
 public class PeminjamanCommandController {
 
@@ -22,7 +22,8 @@ public class PeminjamanCommandController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PeminjamanCommand> updatePeminjaman(@PathVariable UUID id, @RequestBody PeminjamanCommand peminjaman) {
+    public ResponseEntity<PeminjamanCommand> updatePeminjaman(@PathVariable UUID id,
+            @RequestBody PeminjamanCommand peminjaman) {
         return ResponseEntity.ok(peminjamanCommandService.updatePeminjaman(id, peminjaman));
     }
 

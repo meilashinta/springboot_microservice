@@ -1,7 +1,6 @@
 package com.meila.rabbitmq_pustaka;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.UUID;
 
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,16 +10,19 @@ import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.messaging.handler.annotation.Payload;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
-import com.meila.rabbitmq_pustaka.vo.Anggota;
-import com.meila.rabbitmq_pustaka.vo.Peminjaman;
-import com.meila.rabbitmq_pustaka.vo.ResponseTemplate;
-import com.rabbitmq.client.RpcClient.Response;
+import com.meila.rabbitmq_pustaka.dto.PeminjamanEventPayload;
+import com.meila.rabbitmq_pustaka.event.EventType;
+import com.meila.rabbitmq_pustaka.notification.PeminjamanEmailTemplate;
+import com.meila.rabbitmq_pustaka.vo.PeminjamanDetailResponse;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class PeminjamanConsumerService {
 
     @Autowired
@@ -38,26 +40,67 @@ public class PeminjamanConsumerService {
     @RabbitListener(queues = "${app.rabbitmq-peminjaman.queue}")
 
     @Transactional
-    public void receiveOrder(@Payload Peminjaman peminjaman) {
-        System.out.println("Sending receive to email: " + peminjaman.getId());
-        
-        try {
-            ServiceInstance serviceInstance = discoveryClient.getInstances("API-GATEWAY-PUSTAKA").get(0);
-            ResponseTemplate[] response = restTemplate.getForObject(serviceInstance.getUri() + "/api/peminjaman/" + peminjaman.getId() + "/detail", ResponseTemplate[].class);
-            ResponseTemplate dataPeminjaman = response[0];
-            Anggota anggota = dataPeminjaman.getAnggota();
-            String email = anggota.getEmail();
+    public void receiveOrder(PeminjamanEventPayload payload) {
 
-            System.out.println("Sending notification to email: " + email);
+        if (payload == null || payload.getEventType() == null || payload.getId() == null) {
+            return;
+        }
+
+        if (payload.getEventType() == EventType.DELETED) {
+            log.info("Delete event diterima, email tidak dikirim. ID: " + payload.getId());
+            return;
+        }
+
+        log.info("Receive email event: " + payload.getEventType() + " | ID: " + payload.getId());
+
+        try {
+            ServiceInstance serviceInstance = discoveryClient
+                    .getInstances("API-GATEWAY-PUSTAKA")
+                    .stream()
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("API Gateway tidak tersedia"));
+
+            String url = serviceInstance.getUri()
+                    + "/api/peminjaman/" + payload.getId();
+
+            PeminjamanDetailResponse data = restTemplate.getForObject(
+                    url,
+                    PeminjamanDetailResponse.class);
+
+            if (data == null || data.getEmail() == null) {
+                throw new RuntimeException("Data peminjaman atau email kosong");
+            }
+
+            String subject;
+            String messageBody;
+
+            switch (payload.getEventType()) {
+                case CREATED:
+                    subject = "Konfirmasi Peminjaman Buku";
+                    messageBody = PeminjamanEmailTemplate.buildCreateMessage(data);
+                    break;
+
+                case UPDATED:
+                    subject = "Perubahan Data Peminjaman Buku";
+                    messageBody = PeminjamanEmailTemplate.buildUpdateMessage(data);
+                    break;
+
+                default:
+                    return;
+            }
             SimpleMailMessage mailMessage = new SimpleMailMessage();
             mailMessage.setFrom(from);
-            mailMessage.setTo(email);
-            mailMessage.setText(dataPeminjaman.sendMailMessage());
-            mailMessage.setSubject("Konfirmasi Peminjaman Buku Berhasil");
+            mailMessage.setTo(data.getEmail());
+            mailMessage.setSubject(subject);
+            mailMessage.setText(messageBody);
+
             javaMailSender.send(mailMessage);
+
+            log.info("Email berhasil dikirim ke: " + data.getEmail());
         } catch (Exception e) {
-            System.out.println(e.toString());
+            log.warn("Gagal mengirim email peminjaman");
+            log.error(e.toString());
         }
-    
     }
+
 }

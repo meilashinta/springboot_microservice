@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/peminjaman/query")
+@RequestMapping("/api/peminjaman")
 @RequiredArgsConstructor
 public class PeminjamanQueryController {
 
