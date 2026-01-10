@@ -160,7 +160,7 @@ pipeline {
         stage('Verify Monitoring') {
             steps {
                 echo 'Checking Prometheus targets...'
-                sh '''
+                bat '''
                 sleep 30
                 kubectl port-forward svc/monitoring-kube-prometheus-prometheus 9090:9090 &
                 sleep 5
