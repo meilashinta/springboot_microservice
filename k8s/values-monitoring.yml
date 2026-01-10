@@ -1,0 +1,4 @@
+grafana:
+  image:
+    repository: grafana/grafana
+    tag: 9.5.15

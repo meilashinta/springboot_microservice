@@ -21,9 +21,9 @@ app:
   mail:
     host: "smtp.gmail.com"
     port: 587
-    username: ${SMTP_USERNAME}
-    from: ${SMTP_FROM}
-    password: ${SMTP_PASSWORD}
+    username: meilashinta26@gmail.com
+    from: meilashinta26@gmail.com
+    password: ygze bgyp sqnh kdpk
     properties:
       mail:
         smtp:
@@ -33,7 +33,7 @@ app:
 
 logging:
   level:
-    '[com.meila.rabbitmq-pustaka]': DEBUG
+    "[com.meila.rabbitmq-pustaka]": DEBUG
 
 eureka:
   client:

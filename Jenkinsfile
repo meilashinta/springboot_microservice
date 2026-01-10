@@ -103,6 +103,25 @@ pipeline {
             }
         }
 
+        stage('Apply Kubernetes Secrets') {
+            steps {
+                withCredentials([
+                    string(credentialsId: 'smtp-username', variable: 'SMTP_USERNAME'),
+                    string(credentialsId: 'smtp-password', variable: 'SMTP_PASSWORD'),
+                    string(credentialsId: 'smtp-from', variable: 'SMTP_FROM')
+                ]) {
+                    sh '''
+                    kubectl create secret generic smtp-secret \
+                    --from-literal=SMTP_USERNAME="$SMTP_USERNAME" \
+                    --from-literal=SMTP_PASSWORD="$SMTP_PASSWORD" \
+                    --from-literal=SMTP_FROM="$SMTP_FROM" \
+                    --dry-run=client -o yaml | kubectl apply -f -
+                    '''
+                }
+            }
+        }
+
+
         stage('Deploy to Kubernetes') {
             steps {
                 script {
@@ -123,6 +142,9 @@ pipeline {
                     bat "kubectl apply -f ${K8S_MANIFEST_DIR}/10-peminjaman-service.yml"
                     bat "kubectl apply -f ${K8S_MANIFEST_DIR}/11-pengembalian-service.yml"
                     bat "kubectl apply -f ${K8S_MANIFEST_DIR}/12-api-gateway.yml"
+                    bat "kubectl apply -f ${K8S_MANIFEST_DIR}/13-rabbitmq-email-service.yml"
+                    bat "kubectl apply -f ${K8S_MANIFEST_DIR}/servicemonitor.yaml"
+
                     
                     echo 'Rolling out restarts to pick up new images...'
                     bat "kubectl rollout restart deployment/anggota-service"
@@ -132,6 +154,18 @@ pipeline {
                     bat "kubectl rollout restart deployment/api-gateway-pustaka"
                     bat "kubectl rollout restart deployment/logstash"
                 }
+            }
+        }
+        
+        stage('Verify Monitoring') {
+            steps {
+                echo 'Checking Prometheus targets...'
+                sh '''
+                sleep 30
+                kubectl port-forward svc/monitoring-kube-prometheus-prometheus 9090:9090 &
+                sleep 5
+                curl -s http://localhost:9090/api/v1/targets | grep anggota-service || exit 1
+                '''
             }
         }
     }
