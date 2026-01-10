@@ -33,7 +33,7 @@ app:
 
 logging:
   level:
-    '[com.furqon.rabbitmq-pustaka]': DEBUG
+    '[com.meila.rabbitmq-pustaka]': DEBUG
 
 eureka:
   client:

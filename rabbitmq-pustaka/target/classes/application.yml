@@ -15,15 +15,15 @@ spring:
 
 app:
   rabbitmq-peminjaman:
-    queue: peminjaman.queue
+    queue: peminjaman.queue.email
     exchange: peminjaman.exchange
-    routing-key: peminjaman.routing.key
+    routing-key: peminjaman.routing.key.email
   mail:
     host: "smtp.gmail.com"
     port: 587
-    username: "meilashinta26@gmail.com"
-    from: "meilashinta26@gmail.com"
-    password: "uaeu uiez fdqo vgly"
+    username: ${SMTP_USERNAME}
+    from: ${SMTP_FROM}
+    password: ${SMTP_PASSWORD}
     properties:
       mail:
         smtp:
@@ -35,3 +35,12 @@ logging:
   level:
     '[com.meila.rabbitmq-pustaka]': DEBUG
 
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+server:
+  port: 8090

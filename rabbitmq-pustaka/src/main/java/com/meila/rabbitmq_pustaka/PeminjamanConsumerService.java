@@ -19,6 +19,7 @@ import com.meila.rabbitmq_pustaka.dto.PeminjamanEventPayload;
 import com.meila.rabbitmq_pustaka.event.EventType;
 import com.meila.rabbitmq_pustaka.notification.PeminjamanEmailTemplate;
 import com.meila.rabbitmq_pustaka.vo.PeminjamanDetailResponse;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Service
