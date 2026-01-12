@@ -123,14 +123,13 @@ pipeline {
                     string(credentialsId: 'smtp-password', variable: 'SMTP_PASSWORD'),
                     string(credentialsId: 'smtp-from', variable: 'SMTP_FROM')
                 ]) {
-                    bat '''
+                    bat """
                     kubectl delete secret smtp-secret --ignore-not-found
-
                     kubectl create secret generic smtp-secret ^
-                      --from-literal=SMTP_USERNAME=%SMTP_USERNAME% ^
-                      --from-literal=SMTP_PASSWORD=%SMTP_PASSWORD% ^
-                      --from-literal=SMTP_FROM=%SMTP_FROM%
-                    '''
+                    --from-literal=SMTP_USERNAME=${SMTP_USERNAME} ^
+                    --from-literal=SMTP_PASSWORD=${SMTP_PASSWORD} ^
+                    --from-literal=SMTP_FROM=${SMTP_FROM}
+                    """
                 }
             }
         }
