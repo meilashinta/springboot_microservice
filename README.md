@@ -66,4 +66,6 @@ Dokumentasi dan project ini dibuat untuk:
 
 ## 👩‍💻 Author
 
-**Meilashinta Putri Yuliantoni**    TRPL3D  Mahasiswi Teknologi Rekayasa Perangkat Lunak  Jurusan Teknologi Informasi  Politeknik Negeri Padang
+**Meilashinta Putri Yuliantoni**  
+TRPL3D – Mahasiswi Teknologi Rekayasa Perangkat Lunak  
+Jurusan Teknologi Informasi – Politeknik Negeri Padang
