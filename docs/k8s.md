@@ -1,11 +1,10 @@
 
 
-````markdown
 # 🚀 Deployment Kubernetes
 
 Dokumen ini menguraikan langkah-langkah melakukan deployment **infrastruktur** dan **microservices perpustakaan** ke dalam cluster Kubernetes menggunakan manifest yang terdapat di folder `k8s/`.
 
----
+
 
 ## 📁 Struktur Folder `k8s/`
 
@@ -30,7 +29,7 @@ Folder `k8s/` berisi file-file konfigurasi Kubernetes yang mengatur komponen-kom
 | `servicemonitor.yaml`          | ServiceMonitor untuk integrasi dengan Prometheus                                    |
 | `values-monitoring.yml`        | Konfigurasi untuk monitoring stack                                                  |
 
----
+
 
 ## ✅ Persiapan Sebelum Deployment
 
@@ -46,7 +45,7 @@ git clone https://github.com/furqonaugust17/spring-boot-micro-service.git
 cd spring-boot-micro-service
 ````
 
----
+
 
 ## ▶️ Proses Deployment
 
