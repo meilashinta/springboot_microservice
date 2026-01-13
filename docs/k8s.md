@@ -1,57 +1,56 @@
 
+# 🚀 Deployment Kubernetes 
 
-# 🚀 Deployment Kubernetes
+Dokumen ini menjelaskan langkah-langkah melakukan **deployment infrastruktur** dan **microservices perpustakaan** ke cluster Kubernetes menggunakan file manifest yang terdapat di folder `k8s/`.
 
-Dokumen ini menguraikan langkah-langkah melakukan deployment **infrastruktur** dan **microservices perpustakaan** ke dalam cluster Kubernetes menggunakan manifest yang terdapat di folder `k8s/`.
-
-
+---
 
 ## 📁 Struktur Folder `k8s/`
 
-Folder `k8s/` berisi file-file konfigurasi Kubernetes yang mengatur komponen-komponen berikut:
+Berdasarkan struktur file, berikut fungsi masing-masing komponen:
 
-| File                           | Fungsi                                                                               |
-| ------------------------------ | ------------------------------------------------------------------------------------ |
-| `00-storage.yml`               | Persistent Volume dan Persistent Volume Claim (PVC) untuk penyimpanan data permanen  |
-| `01-eureka.yml`                | Deployment dan Service Eureka Server sebagai service discovery                       |
-| `02-postgres.yml`              | Deployment PostgreSQL sebagai database relasional                                    |
-| `03-mongo.yml`                 | Deployment MongoDB sebagai database non-relasional                                   |
-| `04-rabbitmq.yml`              | Deployment RabbitMQ sebagai message broker                                           |
-| `05-elasticsearch.yml`         | Deployment Elasticsearch untuk penyimpanan log terpusat                              |
-| `06-logstash.yml`              | Deployment Logstash untuk pipeline pemrosesan log                                    |
-| `07-kibana.yml`                | Deployment Kibana untuk visualisasi log                                              |
-| `08-anggota-service.yml`       | Deployment microservice anggota                                                      |
-| `09-buku-service.yml`          | Deployment microservice buku                                                         |
-| `10-peminjaman-service.yml`    | Deployment microservice peminjaman                                                   |
-| `11-pengembalian-service.yml`  | Deployment microservice pengembalian                                                 |
-| `12-rabbitmq-email-service.yml`| Deployment consumer email RabbitMQ                                                  |
-| `13-api-gateway.yml`           | Deployment API Gateway sebagai pintu masuk client                                   |
-| `servicemonitor.yaml`          | ServiceMonitor untuk integrasi dengan Prometheus                                    |
-| `values-monitoring.yml`        | Konfigurasi untuk monitoring stack                                                  |
+| File                           | Fungsi                                                                                   |
+| ------------------------------ | ---------------------------------------------------------------------------------------- |
+| `00-storage.yml`               | Persistent Volume (PV) dan Persistent Volume Claim (PVC) untuk penyimpanan data          |
+| `01-eureka.yml`                | Service Discovery (Eureka Server)                                                        |
+| `02-postgres.yml`              | Database Relasional (PostgreSQL)                                                        |
+| `03-mongo.yml`                 | Database NoSQL (MongoDB)                                                                |
+| `04-rabbitmq.yml`              | Message Broker (RabbitMQ)                                                               |
+| `05-elasticsearch.yml`         | Engine Pencarian & Log Storage (Elasticsearch)                                          |
+| `06-logstash.yml`              | Log Processing Pipeline (Logstash)                                                      |
+| `07-kibana.yml`                | Visualisasi Data & Log (Kibana)                                                        |
+| `08-anggota-service.yml`       | Microservice Anggota                                                       |
+| `09-buku-service.yml`          | Microservice Buku                                                          |
+| `10-peminjaman-service.yml`    | Microservice Peminjaman                                                     |
+| `11-pengembalian-service.yml`  | Microservice Pengembalian                                                   |
+| `12-api-gateway.yml`           | API Gateway sebagai pintu masuk (Entry Point) client                                   |
+| `13-rabbitmq-email-service.yml`| Microservice Consumer Email via RabbitMQ                                               |
+| `servicemonitor.yaml`          | Integrasi monitoring dengan Prometheus Operator                                         |
+| `values-monitoring.yml`        | Konfigurasi tambahan untuk stack monitoring (Grafana/Prometheus)                        |
 
-
+---
 
 ## ✅ Persiapan Sebelum Deployment
 
-Pastikan hal-hal berikut sudah terpenuhi sebelum melakukan deployment:
+Pastikan hal-hal berikut sudah terpenuhi:
 
-- Docker telah terinstall dan berjalan
-- Cluster Kubernetes aktif dan siap digunakan
-- `kubectl` sudah dikonfigurasi untuk terhubung ke cluster
-- Repository project sudah di-clone dari GitHub:
+- Cluster Kubernetes (Minikube/Kind/Cloud) sudah berjalan.
+- `kubectl` sudah terkonfigurasi dengan benar.
+- Docker Desktop/Engine dalam kondisi aktif.
+- Clone repository:
 
 ```bash
-git clone https://github.com/furqonaugust17/spring-boot-micro-service.git
-cd spring-boot-micro-service
+git clone https://github.com/meilashinta/springboot_microservice
+cd springboot_microservice
 ````
 
-
+---
 
 ## ▶️ Proses Deployment
 
 ### 1️⃣ Deploy Infrastruktur dan Database
 
-Jalankan perintah berikut secara berurutan untuk membangun infrastruktur utama:
+Jalankan perintah berikut **secara berurutan** untuk membangun infrastruktur utama:
 
 ```bash
 kubectl apply -f k8s/00-storage.yml
@@ -75,21 +74,21 @@ kubectl apply -f k8s/08-anggota-service.yml
 kubectl apply -f k8s/09-buku-service.yml
 kubectl apply -f k8s/10-peminjaman-service.yml
 kubectl apply -f k8s/11-pengembalian-service.yml
-kubectl apply -f k8s/12-rabbitmq-email-service.yml
-kubectl apply -f k8s/13-api-gateway.yml
+kubectl apply -f k8s/12-api-gateway.yml
+kubectl apply -f k8s/13-rabbitmq-email-service.yml
 ```
 
 ---
 
 ## 🔍 Verifikasi Hasil Deployment
 
-Periksa apakah semua pod berjalan dengan lancar:
+Periksa apakah semua **pod** berjalan dengan lancar:
 
 ```bash
 kubectl get pods
 ```
 
-Kemudian pastikan semua service sudah aktif:
+Periksa semua **service** yang sudah aktif:
 
 ```bash
 kubectl get svc
@@ -104,14 +103,4 @@ kubectl get svc
 | Eureka Server | 8761                                                       |
 | API Gateway   | 9002                                                       |
 | Kibana        | NodePort (akses melalui NodePort yang sudah dikonfigurasi) |
-
-> *Catatan:*
-> Jika menggunakan Kubernetes lokal, akses layanan dapat dilakukan dengan `kubectl port-forward` atau konfigurasi NodePort sesuai kebutuhan.
-
----
-
-Dokumen ini diharapkan membantu kamu dalam proses deployment microservices perpustakaan secara terstruktur dan mudah dipahami.
-
-```
-
 
