@@ -1,6 +1,5 @@
 
 
-```markdown
 # 📊 Monitoring & Observability
 
 Sistem monitoring pada project ini menggabungkan beberapa teknologi utama untuk memastikan aplikasi berjalan optimal dan mudah dipantau:
