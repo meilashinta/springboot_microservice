@@ -2,11 +2,15 @@ apiVersion: v1
 kind: Service
 metadata:
   name: peminjaman-service
+  labels:
+    app: peminjaman-service
+    monitoring: enabled  
 spec:
   selector:
     app: peminjaman-service
   ports:
-    - port: 8086
+    - name: http
+      port: 8086
       targetPort: 8086
 ---
 apiVersion: apps/v1
@@ -22,10 +26,13 @@ spec:
     metadata:
       labels:
         app: peminjaman-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8086"
+        prometheus.io/path: "/actuator/prometheus"
     spec:
       containers:
         - name: peminjaman-service
-          # GANTI IMAGE
           image: meilashinta/peminjaman-service:latest
           ports:
             - containerPort: 8086
@@ -64,14 +71,17 @@ spec:
               value: "8086"
             - name: LOGGING_FILE_NAME
               value: /app/logs/peminjaman-service.log
+            - name: SPRING_MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE
+              value: "health,info,prometheus"
+            - name: MANAGEMENT_METRICS_TAGS_APPLICATION
+              value: "peminjaman-service"
+
           volumeMounts:
             - name: peminjaman-data
               mountPath: /data
             - name: logs-volume
               mountPath: /app/logs
-        # Sidecar
         - name: filebeat-peminjaman
-          # GANTI IMAGE
           image: meilashinta/filebeat:latest
           command: ["filebeat", "-e", "--strict.perms=false"]
           volumeMounts:
