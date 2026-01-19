@@ -1,5 +1,6 @@
 package com.meila.pengembalian_service.model;
 
+import java.util.UUID;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -15,7 +16,7 @@ public class Pengembalian {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long peminjamanId;
+    private UUID peminjamanId;
     private String tanggalDikembalikan;
     private String terlambat;
     private double denda;
